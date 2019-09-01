@@ -11,7 +11,7 @@ long_description_content_type="text/markdown"
 
 setup(
     name="AzurePyProxy",
-    version="1.0b",
+    version="1.1b",
     packages=find_packages(),
     author="Tomas Votava",
     author_email="info@tomasvotava.eu",

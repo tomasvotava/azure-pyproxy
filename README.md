@@ -62,3 +62,50 @@ az.vm_deallocate(name="virtual", resource_group="YOUR_RESOURCE_GROUP", replace_u
 az.vm_deallocate(name="virtual", resource_group="YOUR_RESOURCE_GROUP", keep_stdout=True)
 # Returns True/False based on errorcode of the command, prints all output
 ```
+
+## Default subscription and resource group
+
+If you do not want to specify subscription/resource_group in each call and you did not set your defaults using az command or Azure web UI, you can use classmethods designed to deal with it for you.
+
+```python
+from azure_pyproxy import Azure
+
+az = Azure()
+
+# Shows your default subscription
+az.account_show()
+
+az.account_show(subscription="another_subscription")
+# Shows your "another_subscription"
+
+Azure.set_subscription("another_subscription")
+az.account_show()
+# Shows your "another_subscription"
+
+# If you have set your subscription using Azure.set_subscription
+# and you need to use few calls using another one,
+# you can always specify your subscription as a parameter (this overrides default setting)
+Azure.set_subscription("another_subscription")
+az.account_show(subscription="yet_another_one")
+# Shows info for "yet_another_one"
+
+# In case you want to switch back to your az default, you can reset your subscription:
+Azure.reset_subscription()
+```
+
+All of the above works with resource groups as well:
+
+```python
+from azure_pyproxy import Azure
+az = Azure()
+
+Azure.set_resource_group("resource-group")
+
+az.vm_start(name="virtual")
+```
+
+Code above starts VM named `virtual` in resource group `resource-group`. Following code resets the setting for you:
+
+```python
+Azure.reset_resource_group()
+```

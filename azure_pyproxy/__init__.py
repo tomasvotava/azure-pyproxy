@@ -19,6 +19,12 @@ def azure_proxy(command, *args, **kwargs):
     else:
         keep_stdout = False
 
+    if Azure.default_resource_group is not None and not "resource_group" in kwargs:
+        kwargs["resource_group"] = Azure.default_resource_group
+    
+    if Azure.default_subscription is not None and not "subscription" in kwargs:
+        kwargs["subscription"] = Azure.default_subscription
+
     flags = [
         "--{key}=\"{value}\"".format(
             key=(key.replace("_", "-") if replace_underscore else key),
@@ -48,6 +54,8 @@ def azure_proxy(command, *args, **kwargs):
         raise AzureError(err.decode("utf-8"))
 
 class Azure:
+    default_resource_group = None
+    default_subscription = None
     def __init__(self):
         pass
     def __getattribute__(self, attr):
@@ -57,6 +65,18 @@ class Azure:
         def run_azure(*args, **kwargs):
             return azure_proxy(*attributes, *args, **kwargs)
         return run_azure
+    @classmethod
+    def set_subscription(cls, subscription):
+        cls.default_subscription = subscription
+    @classmethod
+    def set_resource_group(cls, resource_group):
+        cls.default_resource_group = resource_group
+    @classmethod
+    def reset_subscription(cls):
+        cls.default_subscription = None
+    @classmethod
+    def reset_resource_group(cls):
+        cls.default_resource_group = None
 
 if which("az") == None:
     raise FileNotFoundError("\'az\' command was not found in your environment. Ensure it is installed and set up properly.")
