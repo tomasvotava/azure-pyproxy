@@ -1,3 +1,4 @@
+import sys
 from subprocess import Popen, PIPE
 import json
 from shutil import which
@@ -11,6 +12,13 @@ def azure_proxy(command, *args, **kwargs):
         del kwargs["replace_underscore"]
     else:
         replace_underscore = True
+    
+    if "keep_stdout" in kwargs.keys():
+        keep_stdout = kwargs["keep_stdout"]
+        del kwargs["keep_stdout"]
+    else:
+        keep_stdout = False
+
     flags = [
         "--{key}=\"{value}\"".format(
             key=(key.replace("_", "-") if replace_underscore else key),
@@ -20,16 +28,24 @@ def azure_proxy(command, *args, **kwargs):
         "az",
         command,
         *["\"{}\"".format(arg) for arg in args],
-        *flags
+        *flags,
+        "--output json"
     ]),
-    stdout=PIPE,
-    stderr=PIPE,
+    stdout=PIPE if not keep_stdout else sys.stdout,
+    stderr=PIPE if not keep_stdout else sys.stderr,
+    stdin=None if not keep_stdout else sys.stdin,
     shell=True
     )
-    if f.wait() == 0:
-        return json.loads(f.stdout.read().decode("utf-8"))
+    if keep_stdout:
+        if f.wait()==0:
+            return True
+        else:
+            return False
+    out, err = f.communicate()
+    if f.returncode == 0:
+        return json.loads(out.decode("utf-8"))
     else:
-        raise AzureError(f.stderr.read().decode("utf-8"))
+        raise AzureError(err.decode("utf-8"))
 
 class Azure:
     def __init__(self):
